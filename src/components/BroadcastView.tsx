@@ -37,6 +37,10 @@ export const BroadcastView: React.FC<BroadcastViewProps> = ({
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
+  // BURN RADIO State
+  const [burnStatus, setBurnStatus] = useState<'DISCONNECTED' | 'CONNECTING' | 'CONNECTED' | 'LIVE' | 'CONNECTION ERROR'>('DISCONNECTED');
+  const [burnCode, setBurnCode] = useState('burnradio');
+
   const companionConfig: CompanionConfig = {
     stationName: 'RADIOFLOW 104.5 HD',
     musicDirectory: 'C:\\RadioAutomation\\Music',
@@ -72,8 +76,54 @@ export const BroadcastView: React.FC<BroadcastViewProps> = ({
     URL.revokeObjectURL(url);
   };
 
+  const handleBurnConnect = () => {
+    if (burnCode !== 'burnradio') {
+      setBurnStatus('CONNECTION ERROR');
+      return;
+    }
+    setBurnStatus('CONNECTING');
+    setTimeout(() => setBurnStatus('CONNECTED'), 1500);
+  };
+
+  const handleBurnGoLive = () => {
+    setBurnStatus('LIVE');
+    setIsOnAir(true);
+  };
+
+  const handleBurnStop = () => {
+    setBurnStatus('CONNECTED');
+    setIsOnAir(false);
+  };
+
   return (
     <div className="max-w-5xl mx-auto space-y-6">
+      {/* BURN RADIO Connection Panel */}
+      <div className="bg-[#202020] border border-[#FF7900]/40 rounded-lg p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-bold text-white flex items-center space-x-2">
+            <Radio className="w-5 h-5 text-[#FF7900]" />
+            <span>BURN RADIO – LISTENER CONNECTION</span>
+          </h2>
+          <div className={`px-3 py-1 rounded text-xs font-bold ${burnStatus === 'LIVE' ? 'bg-red-600 text-white animate-pulse' : 'bg-[#181818] text-[#A5A5A5]'}`}>
+            {burnStatus}
+          </div>
+        </div>
+        
+        <div className="flex flex-wrap items-center gap-3">
+          <input
+            type="text"
+            value={burnCode}
+            onChange={(e) => setBurnCode(e.target.value)}
+            className="bg-[#181818] border border-[#303030] rounded p-2 text-xs text-white focus:border-[#FF7900] outline-none"
+            placeholder="Station Code"
+          />
+          <button onClick={handleBurnConnect} className="px-4 py-2 bg-[#FF7900] hover:bg-[#E96800] text-white font-bold text-xs rounded-md">CONNECT</button>
+          <button onClick={handleBurnGoLive} disabled={burnStatus !== 'CONNECTED'} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-xs rounded-md">GO LIVE</button>
+          <button onClick={handleBurnStop} disabled={burnStatus !== 'LIVE'} className="px-4 py-2 bg-red-800 hover:bg-red-700 disabled:opacity-50 text-white font-bold text-xs rounded-md">STOP</button>
+          <button onClick={() => setBurnStatus('DISCONNECTED')} className="px-4 py-2 bg-[#181818] border border-[#303030] text-white font-bold text-xs rounded-md">DISCONNECT</button>
+        </div>
+      </div>
+
       {/* Top Banner */}
       <div className="bg-[#202020] border border-[#303030] rounded-lg p-5">
         <h2 className="text-lg font-bold text-white">Broadcast Server Settings</h2>

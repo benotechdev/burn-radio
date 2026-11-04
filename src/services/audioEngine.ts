@@ -605,6 +605,9 @@ class BroadcastAudioEngine {
     const blob = new Blob([buffer], { type: 'audio/wav' });
     return URL.createObjectURL(blob);
   }
+  public getMasterGainNode(): GainNode | null {
+    return this.masterGain;
+  }
 }
 
 export const audioEngine = new BroadcastAudioEngine();
