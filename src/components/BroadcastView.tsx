@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Wifi,
   Radio,
@@ -57,6 +57,17 @@ export const BroadcastView: React.FC<BroadcastViewProps> = ({
   const icecastXml = generateIcecastXml(companionConfig);
   const agentScript = generateCompanionAgentScript(companionConfig);
   const batchScript = generateWindowsBatchScript();
+
+  const [stationArtwork, setStationArtwork] = useState<string | null>(null);
+  const artworkInputRef = useRef<HTMLInputElement>(null);
+
+  const handleArtworkUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setStationArtwork(url);
+    }
+  };
 
   const handleCopy = (text: string, key: string) => {
     navigator.clipboard.writeText(text);
@@ -121,6 +132,24 @@ export const BroadcastView: React.FC<BroadcastViewProps> = ({
           <button onClick={handleBurnGoLive} disabled={burnStatus !== 'CONNECTED'} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-xs rounded-md">GO LIVE</button>
           <button onClick={handleBurnStop} disabled={burnStatus !== 'LIVE'} className="px-4 py-2 bg-red-800 hover:bg-red-700 disabled:opacity-50 text-white font-bold text-xs rounded-md">STOP</button>
           <button onClick={() => setBurnStatus('DISCONNECTED')} className="px-4 py-2 bg-[#181818] border border-[#303030] text-white font-bold text-xs rounded-md">DISCONNECT</button>
+        </div>
+
+        {/* Station Artwork Upload */}
+        <div className="flex items-center gap-4 pt-2 border-t border-[#303030]">
+          <div className="w-16 h-16 bg-[#181818] border border-[#303030] rounded flex items-center justify-center overflow-hidden">
+            {stationArtwork ? (
+              <img src={stationArtwork} alt="Station Art" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-[#A5A5A5] text-[10px]">No Art</span>
+            )}
+          </div>
+          <input type="file" ref={artworkInputRef} onChange={handleArtworkUpload} accept="image/*" className="hidden" />
+          <button
+            onClick={() => artworkInputRef.current?.click()}
+            className="px-3 py-1.5 bg-[#181818] hover:bg-[#282828] text-white border border-[#303030] font-bold text-xs rounded-md"
+          >
+            Upload Station Art
+          </button>
         </div>
       </div>
 
