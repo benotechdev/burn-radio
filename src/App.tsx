@@ -519,6 +519,7 @@ export default function App() {
               setAutoDJSettings={setAutoDJSettings}
               onStartAutoDj={handleStartAutoDj}
               onStopAutoDj={handleStopAutoDj}
+              allTracks={tracks}
             />
           )}
 

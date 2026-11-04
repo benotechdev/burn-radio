@@ -17,8 +17,9 @@ import {
   Trash2,
   Check
 } from 'lucide-react';
-import { Track, Playlist, PlaylistItem, AutoDJSettings } from '../types/radio';
+import { Track, Playlist, PlaylistItem, AutoDJSettings, DeckState } from '../types/radio';
 import { audioEngine } from '../services/audioEngine';
+import { StudioConsole } from './StudioConsole';
 
 interface DjAndAutoDjViewProps {
   broadcastMode: 'manual' | 'autodj' | 'assisted';
@@ -40,6 +41,7 @@ interface DjAndAutoDjViewProps {
   setAutoDJSettings: React.Dispatch<React.SetStateAction<AutoDJSettings>>;
   onStartAutoDj: (playlistId: string) => void;
   onStopAutoDj: () => void;
+  allTracks: Track[];
 }
 
 export const DjAndAutoDjView: React.FC<DjAndAutoDjViewProps> = ({
@@ -62,14 +64,55 @@ export const DjAndAutoDjView: React.FC<DjAndAutoDjViewProps> = ({
   setAutoDJSettings,
   onStartAutoDj,
   onStopAutoDj,
+  allTracks,
 }) => {
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<string>(
     playlists[0]?.id || ''
   );
   const [isShuffle, setIsShuffle] = useState(false);
   const [isRepeat, setIsRepeat] = useState(true);
-  const [showAdvancedMixer, setShowAdvancedMixer] = useState(false);
-  const [crossfaderVal, setCrossfaderVal] = useState(0);
+
+  // Deck A & B state for the Pro Two-Deck Scratch Console
+  const [deckA, setDeckA] = useState<DeckState>({
+    deckId: 'A',
+    track: currentTrack,
+    isPlaying: isPlaying,
+    currentTime: currentTime,
+    duration: duration,
+    volume: volume,
+    pitch: 0,
+    eqHigh: 0,
+    eqMid: 0,
+    eqLow: 0,
+    isCueing: false,
+    isLooping: false,
+    vuLevelL: 0.6,
+    vuLevelR: 0.6,
+    peakL: 0.8,
+    peakR: 0.8,
+  });
+
+  const [deckB, setDeckB] = useState<DeckState>({
+    deckId: 'B',
+    track: allTracks[1] || null,
+    isPlaying: false,
+    currentTime: 0,
+    duration: 180,
+    volume: 0.85,
+    pitch: 0,
+    eqHigh: 0,
+    eqMid: 0,
+    eqLow: 0,
+    isCueing: false,
+    isLooping: false,
+    vuLevelL: 0.0,
+    vuLevelR: 0.0,
+    peakL: 0.0,
+    peakR: 0.0,
+  });
+
+  const [crossfaderPos, setCrossfaderPos] = useState<number>(0);
+  const [isMicLive, setIsMicLive] = useState<boolean>(false);
 
   const formatTime = (secs: number) => {
     if (isNaN(secs) || secs < 0) secs = 0;
@@ -78,15 +121,13 @@ export const DjAndAutoDjView: React.FC<DjAndAutoDjViewProps> = ({
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
-  const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
-
-  const handleRemoveFromQueue = (queueId: string) => {
-    setQueue((prev) => prev.filter((item) => item.queueId !== queueId));
+  const handleTrackFinished = (deckId: 'A' | 'B') => {
+    onNext();
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
-      {/* Top Mode Selector Tabs with Obvious Orange Selected-State Indicator */}
+    <div className="max-w-7xl mx-auto space-y-6">
+      {/* Top Mode Selector Tabs */}
       <div className="bg-[#202020] border border-[#303030] rounded-lg p-1.5 flex items-center">
         <button
           onClick={() => setBroadcastMode('manual')}
@@ -97,7 +138,7 @@ export const DjAndAutoDjView: React.FC<DjAndAutoDjViewProps> = ({
           }`}
         >
           <Radio className="w-4 h-4" />
-          <span>MANUAL DJ</span>
+          <span>PRO TWO-DECK SCRATCH CONSOLE</span>
         </button>
 
         <button
@@ -113,228 +154,29 @@ export const DjAndAutoDjView: React.FC<DjAndAutoDjViewProps> = ({
         </button>
       </div>
 
-      {/* ==================== 1. MANUAL DJ MODE ==================== */}
+      {/* ==================== 1. MANUAL DJ MODE (PRO TWO-DECK CONSOLE) ==================== */}
       {broadcastMode === 'manual' && (
-        <div className="space-y-6">
-          {/* Current Track & Playback Card */}
-          <div className="bg-[#202020] border border-[#303030] rounded-lg p-6 space-y-5">
-            <div className="flex items-center justify-between border-b border-[#303030] pb-3">
-              <span className="text-xs font-bold text-[#A5A5A5] uppercase tracking-wider">
-                Manual DJ Playout Deck
-              </span>
-              <span className="text-xs font-bold text-[#FF7900] bg-[#181818] border border-[#303030] px-2.5 py-1 rounded">
-                Live Console
-              </span>
-            </div>
-
-            {/* Track Info */}
-            <div className="flex items-center space-x-4">
-              <div className="w-16 h-16 rounded bg-[#181818] border border-[#303030] flex items-center justify-center text-[#FF7900] shrink-0 relative">
-                <Radio className="w-8 h-8" />
-                {currentTrack && (
-                  <span className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-[#FF7900] text-black">
-                    {currentTrack.mediaType === 'mp4' || currentTrack.filePath?.toLowerCase().endsWith('.mp4') ? 'MP4' : 'MP3'}
-                  </span>
-                )}
-              </div>
-              <div className="overflow-hidden">
-                <h3 className="text-xl font-bold text-white truncate">
-                  {currentTrack ? currentTrack.title : 'No Track Loaded'}
-                </h3>
-                <p className="text-sm text-[#A5A5A5] truncate mt-0.5">
-                  {currentTrack ? currentTrack.artist : 'Select a track from the library or queue'}
-                </p>
-                {currentTrack && (
-                  <div className="text-xs font-mono text-[#A5A5A5] mt-1 truncate">
-                    <span className="text-[#FF7900] mr-1">Local PC File:</span>
-                    <span>{currentTrack.filePath}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Seek Bar */}
-            <div className="space-y-1.5">
-              <div
-                className="w-full h-2 bg-[#181818] border border-[#303030] rounded-full overflow-hidden cursor-pointer"
-                onClick={(e) => {
-                  if (duration <= 0) return;
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  const clickPos = (e.clientX - rect.left) / rect.width;
-                  onSeek(clickPos * duration);
-                }}
-              >
-                <div
-                  className="h-full bg-[#FF7900] transition-all duration-100"
-                  style={{ width: `${progressPercent}%` }}
-                />
-              </div>
-
-              <div className="flex justify-between text-xs font-mono text-[#A5A5A5]">
-                <span>{formatTime(currentTime)}</span>
-                <span>-{formatTime(Math.max(0, duration - currentTime))}</span>
-              </div>
-            </div>
-
-            {/* Primary Manual DJ Controls */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={onPrevious}
-                  className="p-3 rounded-md bg-[#181818] hover:bg-[#282828] text-white border border-[#303030] transition-colors"
-                  title="Previous"
-                >
-                  <SkipBack className="w-5 h-5" />
-                </button>
-
-                <button
-                  onClick={onTogglePlay}
-                  disabled={!currentTrack}
-                  className="px-6 py-3 rounded-md bg-[#FF7900] hover:bg-[#E96800] text-white font-bold text-sm flex items-center space-x-2 transition-all shadow-md disabled:opacity-50"
-                >
-                  {isPlaying ? (
-                    <>
-                      <Pause className="w-5 h-5 fill-current" />
-                      <span>Pause Playout</span>
-                    </>
-                  ) : (
-                    <>
-                      <Play className="w-5 h-5 fill-current ml-0.5" />
-                      <span>Start Playout</span>
-                    </>
-                  )}
-                </button>
-
-                <button
-                  onClick={onNext}
-                  className="p-3 rounded-md bg-[#181818] hover:bg-[#282828] text-white border border-[#303030] transition-colors"
-                  title="Next"
-                >
-                  <SkipForward className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Volume Slider */}
-              <div className="flex items-center space-x-3 w-full sm:w-56 bg-[#181818] p-2.5 rounded-md border border-[#303030]">
-                <Volume2 className="w-4 h-4 text-[#A5A5A5] shrink-0" />
-                <span className="text-xs text-[#A5A5A5] w-12 shrink-0">Volume</span>
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.01"
-                  value={volume}
-                  onChange={(e) => onVolumeChange(parseFloat(e.target.value))}
-                  className="w-full"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Upcoming Queue */}
-          <div className="bg-[#202020] border border-[#303030] rounded-lg p-5 space-y-3">
-            <div className="flex items-center justify-between border-b border-[#303030] pb-2">
-              <span className="text-xs font-bold text-[#A5A5A5] uppercase tracking-wider">
-                Upcoming Playout Queue ({queue.length})
-              </span>
-              <span className="text-xs text-[#A5A5A5]">Next tracks in rotation</span>
-            </div>
-
-            <div className="divide-y divide-[#303030]">
-              {queue.length === 0 ? (
-                <div className="py-8 text-center text-xs text-[#A5A5A5]">
-                  Queue is empty. Add songs from the Music section.
-                </div>
-              ) : (
-                queue.map((item, idx) => (
-                  <div
-                    key={item.queueId}
-                    className="py-2.5 flex items-center justify-between text-xs"
-                  >
-                    <div className="flex items-center space-x-3 overflow-hidden">
-                      <span className="w-5 font-mono text-[#A5A5A5] text-center font-bold">
-                        {idx + 1}
-                      </span>
-                      <div className="truncate">
-                        <div className="font-semibold text-white truncate">
-                          {item.track.title}
-                        </div>
-                        <div className="text-[11px] text-[#A5A5A5] truncate">
-                          {item.track.artist}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-3 shrink-0">
-                      <span className="font-mono text-[#A5A5A5]">
-                        {formatTime(item.track.duration)}
-                      </span>
-                      <button
-                        onClick={() => handleRemoveFromQueue(item.queueId)}
-                        className="p-1 text-[#A5A5A5] hover:text-white"
-                        title="Remove from queue"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* Optional Advanced Mixing Controls Accordion */}
-          <div className="bg-[#202020] border border-[#303030] rounded-lg overflow-hidden">
-            <button
-              onClick={() => setShowAdvancedMixer(!showAdvancedMixer)}
-              className="w-full p-4 text-left flex items-center justify-between text-xs font-bold text-[#A5A5A5] hover:text-white transition-colors"
-            >
-              <span>ADVANCED MIXING CONTROLS (OPTIONAL)</span>
-              {showAdvancedMixer ? (
-                <ChevronUp className="w-4 h-4" />
-              ) : (
-                <ChevronDown className="w-4 h-4" />
-              )}
-            </button>
-
-            {showAdvancedMixer && (
-              <div className="p-5 border-t border-[#303030] bg-[#181818] space-y-4 text-xs">
-                <div>
-                  <div className="flex justify-between text-xs mb-1 text-[#A5A5A5]">
-                    <span>Deck A / Deck B Crossfader</span>
-                    <span className="font-mono text-white">Center</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="-1"
-                    max="1"
-                    step="0.05"
-                    value={crossfaderVal}
-                    onChange={(e) => {
-                      const v = parseFloat(e.target.value);
-                      setCrossfaderVal(v);
-                      audioEngine.setCrossfader(v);
-                    }}
-                    className="w-full"
-                  />
-                  <div className="flex justify-between text-[10px] text-[#A5A5A5] font-mono mt-1">
-                    <span>Deck A</span>
-                    <span>Deck B</span>
-                  </div>
-                </div>
-
-                <div className="pt-2 text-xs text-[#A5A5A5]">
-                  Professional hardware crossfade curve set to standard commercial broadcast dip (-3dB).
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+        <StudioConsole
+          deckA={deckA}
+          setDeckA={setDeckA}
+          deckB={deckB}
+          setDeckB={setDeckB}
+          crossfaderPos={crossfaderPos}
+          setCrossfaderPos={setCrossfaderPos}
+          crossfadeCurve="broadcast-dip"
+          broadcastMode={broadcastMode}
+          isMicLive={isMicLive}
+          onToggleMic={() => setIsMicLive(!isMicLive)}
+          queue={queue}
+          setQueue={setQueue}
+          allTracks={allTracks}
+          onTrackFinished={handleTrackFinished}
+        />
       )}
 
       {/* ==================== 2. AUTO DJ MODE ==================== */}
       {broadcastMode === 'autodj' && (
-        <div className="bg-[#202020] border border-[#303030] rounded-lg p-6 space-y-6">
+        <div className="bg-[#202020] border border-[#303030] rounded-lg p-6 space-y-6 max-w-3xl mx-auto">
           <div className="flex items-center justify-between border-b border-[#303030] pb-3">
             <div>
               <h3 className="text-base font-bold text-white">Auto DJ Automation</h3>
@@ -406,37 +248,8 @@ export const DjAndAutoDjView: React.FC<DjAndAutoDjViewProps> = ({
               }`}
             >
               <Repeat className="w-4 h-4" />
-              <span>Loop Playlist: {isRepeat ? 'ON' : 'OFF'}</span>
+              <span>Repeat Playlist: {isRepeat ? 'ON' : 'OFF'}</span>
             </button>
-          </div>
-
-          {/* Crossfade Setting Slider */}
-          <div className="space-y-2 pt-2 border-t border-[#303030]">
-            <div className="flex justify-between text-xs text-[#A5A5A5]">
-              <span className="font-semibold text-white">Crossfade Transition Duration</span>
-              <span className="font-mono text-[#FF7900] font-bold">
-                {autoDJSettings.crossfadeDuration} seconds
-              </span>
-            </div>
-            <input
-              type="range"
-              min="1"
-              max="8"
-              step="0.5"
-              value={autoDJSettings.crossfadeDuration}
-              onChange={(e) =>
-                setAutoDJSettings((prev) => ({
-                  ...prev,
-                  crossfadeDuration: parseFloat(e.target.value),
-                }))
-              }
-              className="w-full"
-            />
-            <div className="flex justify-between text-[11px] text-[#A5A5A5] font-mono">
-              <span>1.0s (Tight)</span>
-              <span>3.5s (Standard Radio)</span>
-              <span>8.0s (Smooth Club)</span>
-            </div>
           </div>
         </div>
       )}
