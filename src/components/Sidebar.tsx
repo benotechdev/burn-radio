@@ -8,7 +8,8 @@ import {
   Calendar,
   Wifi,
   Settings,
-  X
+  X,
+  Flame
 } from 'lucide-react';
 
 export type NavSection =
@@ -67,31 +68,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div>
           <div className="h-16 px-6 border-b border-[#303030] flex items-center justify-between">
             <div className="flex items-center space-x-2.5">
-              {/* Custom Orange Radio-Wave Logo Symbol */}
-              <div className="w-8 h-8 rounded bg-[#FF7900] flex items-center justify-center text-white shrink-0 shadow-sm">
-                <svg
-                  className="w-5 h-5"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9" />
-                  <path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5" />
-                  <circle cx="12" cy="12" r="2" fill="currentColor" />
-                  <path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5" />
-                  <path d="M19.1 4.9C23 8.8 23 15.2 19.1 19.1" />
-                </svg>
+              {/* Custom Fiery Orange Flame Radio Logo Symbol */}
+              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#FF7900] to-[#E96800] flex items-center justify-center text-black shrink-0 shadow-lg shadow-[#FF7900]/30 relative overflow-hidden">
+                <Flame className="w-5 h-5 fill-black text-black" />
+                <div className="absolute inset-0 bg-white/10 animate-pulse pointer-events-none" />
               </div>
 
               <div>
-                <span className="text-base font-bold tracking-wider text-white">
-                  RADIO<span className="text-[#FF7900]">FLOW</span>
+                <span className="text-base font-extrabold tracking-wider text-white">
+                  BURN <span className="text-[#FF7900] neon-text-orange">RADIO</span>
                 </span>
-                <span className="text-[10px] text-[#A5A5A5] block font-medium -mt-1">
-                  Radio Automation
+                <span className="text-[10px] text-[#A5A5A5] block font-medium -mt-1 tracking-wider uppercase">
+                  Commercial Playout
                 </span>
               </div>
             </div>

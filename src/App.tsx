@@ -29,7 +29,7 @@ import {
 export default function App() {
   const [currentSection, setCurrentSection] = useState<NavSection>('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [stationName, setStationName] = useState('RADIOFLOW 104.5 HD');
+  const [stationName, setStationName] = useState('BURN RADIO 104.5 HD');
   const [isOnAir, setIsOnAir] = useState(true);
   const [broadcastMode, setBroadcastMode] = useState<'manual' | 'autodj' | 'assisted'>('autodj');
   const [isCompanionOnline, setIsCompanionOnline] = useState(false);
