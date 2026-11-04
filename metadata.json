@@ -1,0 +1,6 @@
+{
+  "name": "RADIOFLOW - Professional Radio Automation System",
+  "description": "Professional internet radio automation and management system with local PC music library integration, live dual-deck DJ studio, AutoDJ rotation, program scheduling, and Icecast/Liquidsoap broadcast controls.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RADIOFLOW - Professional Radio Automation System</title>
+    <meta name="description" content="Professional internet radio automation and management system with local PC music library integration, live dual-deck DJ studio, AutoDJ rotation, program scheduling, and Icecast/Liquidsoap broadcast controls." />
+    <meta property="og:title" content="RADIOFLOW - Professional Radio Automation System" />
+    <meta property="og:description" content="Professional internet radio automation and management system with local PC music library integration, live dual-deck DJ studio, AutoDJ rotation, program scheduling, and Icecast/Liquidsoap broadcast controls." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+      // Safe fallback for hosted reverse-proxy environments (Google AI Studio / Cloud Run)
+      // where WebSocket upgrade handshakes are closed or redirected by the proxy.
+      (function() {
+        // 1. Suppress unhandled promise rejection from @vite/client
+        window.addEventListener('unhandledrejection', function(event) {
+          var reason = event.reason;
+          if (reason && (
+            (typeof reason === 'string' && (reason.includes('WebSocket') || reason.includes('@vite/client'))) ||
+            (reason.message && (reason.message.includes('WebSocket') || reason.message.includes('@vite/client')))
+          )) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+          }
+        });
+
+        // 2. Intercept console.error for [vite] websocket closed without opened
+        var origConsoleError = console.error;
+        console.error = function() {
+          var msg = arguments[0];
+          if (typeof msg === 'string' && (
+            msg.includes('[vite] failed to connect to websocket') ||
+            msg.includes('WebSocket closed without opened')
+          )) {
+            // Gracefully swallow proxy HMR websocket disconnects in hosted preview
+            return;
+          }
+          return origConsoleError.apply(console, arguments);
+        };
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

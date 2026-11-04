@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-bg: #111111;
+    --color-sidebar: #181818;
+    --color-card: #202020;
+    --color-border: #303030;
+    --color-primary: #FF7900;
+    --color-primary-hover: #E96800;
+    --color-secondary-text: #A5A5A5;
+    --color-white: #FFFFFF;
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  body {
+    background: linear-gradient(rgba(17, 17, 17, 0.91), rgba(17, 17, 17, 0.95)), url('/assets/aistudio/radio_ea37ac14.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    color: #FFFFFF;
+    font-family: var(--font-sans);
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Commercial Radio Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #181818;
+}
+::-webkit-scrollbar-thumb {
+  background: #303030;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #444444;
+}
+
+/* Orange custom slider styling */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: #303030;
+  height: 4px;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  background: #FF7900;
+  border-radius: 50%;
+  border: 2px solid #FFFFFF;
+  cursor: pointer;
+  transition: transform 0.1s ease, background 0.1s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  background: #E96800;
+  transform: scale(1.15);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  background: #FF7900;
+  border-radius: 50%;
+  border: 2px solid #FFFFFF;
+  cursor: pointer;
+}
+
+/* Vibrant Radio Neon & Studio Glow Utilities */
+.neon-glow-orange {
+  box-shadow: 0 0 30px rgba(255, 121, 0, 0.35);
+  border-color: #FF7900 !important;
+}
+
+.neon-text-orange {
+  text-shadow: 0 0 12px rgba(255, 121, 0, 0.7);
+}
+
+.studio-panel-gradient {
+  background: linear-gradient(150deg, #1d1d1f 0%, #121214 100%);
+  border: 1px solid #333333;
+}
+
+@keyframes pulse-neon {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.02); }
+}
+
+.animate-neon-pulse {
+  animation: pulse-neon 2s infinite ease-in-out;
+}
