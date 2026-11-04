@@ -60,6 +60,95 @@ export const StudioConsole: React.FC<StudioConsoleProps> = ({
   const [masterLevels, setMasterLevels] = useState<{ level: number; peak: number }>({ level: 0, peak: 0 });
   const [micLevel, setMicLevel] = useState<number>(0);
 
+  // VirtualDJ Pro Mixing Features State
+  const [hotCuesA, setHotCuesA] = useState<{ [key: number]: number }>({});
+  const [hotCuesB, setHotCuesB] = useState<{ [key: number]: number }>({});
+  const [pitchA, setPitchA] = useState<number>(0);
+  const [pitchB, setPitchB] = useState<number>(0);
+  const [loopA, setLoopA] = useState<boolean>(false);
+  const [loopB, setLoopB] = useState<boolean>(false);
+  const [effectA, setEffectA] = useState<string>('none');
+  const [effectB, setEffectB] = useState<string>('none');
+
+  const handleHotCue = (deck: 'A' | 'B', index: number) => {
+    const currentDeck = deck === 'A' ? deckA : deckB;
+    const cues = deck === 'A' ? hotCuesA : hotCuesB;
+    const setCues = deck === 'A' ? setHotCuesA : setHotCuesB;
+
+    if (cues[index] !== undefined && cues[index] > 0) {
+      audioEngine.seek(deck, cues[index]);
+      if (deck === 'A') {
+        setDeckA(prev => ({ ...prev, currentTime: cues[index] }));
+      } else {
+        setDeckB(prev => ({ ...prev, currentTime: cues[index] }));
+      }
+    } else {
+      setCues(prev => ({ ...prev, [index]: currentDeck.currentTime }));
+    }
+  };
+
+  const handlePitchChangeVal = (deck: 'A' | 'B', val: number) => {
+    if (deck === 'A') {
+      setPitchA(val);
+      audioEngine.setPitch('A', val);
+      setDeckA(prev => ({ ...prev, pitch: val }));
+    } else {
+      setPitchB(val);
+      audioEngine.setPitch('B', val);
+      setDeckB(prev => ({ ...prev, pitch: val }));
+    }
+  };
+
+  // Professional Scratch & Vinyl Brake State
+  const [scratchingDeck, setScratchingDeck] = useState<'A' | 'B' | null>(null);
+  const lastMouseXRef = useRef<number>(0);
+
+  const handleScratchStart = (deck: 'A' | 'B', e: React.MouseEvent | React.TouchEvent) => {
+    setScratchingDeck(deck);
+    const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
+    lastMouseXRef.current = clientX;
+  };
+
+  const handleScratchMove = (deck: 'A' | 'B', e: React.MouseEvent | React.TouchEvent) => {
+    if (scratchingDeck !== deck) return;
+    const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
+    const deltaX = clientX - lastMouseXRef.current;
+    lastMouseXRef.current = clientX;
+
+    const currentDeck = deck === 'A' ? deckA : deckB;
+    const newTime = Math.max(0, currentDeck.currentTime + deltaX * 0.04);
+    audioEngine.seek(deck, newTime);
+    if (deck === 'A') {
+      setDeckA(prev => ({ ...prev, currentTime: newTime }));
+    } else {
+      setDeckB(prev => ({ ...prev, currentTime: newTime }));
+    }
+  };
+
+  const handleScratchEnd = () => {
+    setScratchingDeck(null);
+  };
+
+  const handleVinylBrake = (deck: 'A' | 'B') => {
+    let rate = 1.0;
+    const interval = setInterval(() => {
+      rate -= 0.15;
+      if (rate <= 0.1) {
+        clearInterval(interval);
+        if (deck === 'A') {
+          audioEngine.pause('A');
+          setDeckA(prev => ({ ...prev, isPlaying: false }));
+        } else {
+          audioEngine.pause('B');
+          setDeckB(prev => ({ ...prev, isPlaying: false }));
+        }
+        audioEngine.setPitch(deck, 0);
+      } else {
+        audioEngine.setPitch(deck, (rate - 1) * 100);
+      }
+    }, 120);
+  };
+
   // Cart Wall state (12 instant broadcast pads)
   const [carts, setCarts] = useState<CartPad[]>([
     { id: 'cart-1', slot: 1, label: 'RADIOFLOW ID', sublabel: 'Station Chime', color: 'bg-rose-600', category: 'Station ID', hotkey: '1', track: allTracks[5] || null, playMode: 'trigger', isPlaying: false, volume: 1.0 },
